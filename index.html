@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ру">
+<html lang="ru">
 <head>
   <meta charset="utf-8" />
   <title>Сонная Овечка</title>
@@ -9,16 +9,26 @@
   <!-- Fonts: Manrope (UI) + JetBrains Mono (digits) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-          href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600&family=Manrope:wght@400;600;800&display=swap"
-          rel="stylesheet"
-  />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet" />
 </head>
 <body>
 <div class="wrap">
   <canvas id="game" width="800" height="300" aria-label="Игра Сонная Овечка"></canvas>
 
   <div id="hud" class="hud">
+    <!-- Бренд‑ссылка слева сверху -->
+    <a
+            id="brandLink"
+            class="brand-link"
+            href="https://vk.com/cifra.stud"
+            target="_blank" rel="noopener"
+            aria-label="Перейти на сайт"
+            title="Перейти на сайт"
+    >
+      <img src="./data/kit.png" alt="" loading="lazy" />
+      <span class="label">Институт&nbsp;Цифры</span>
+    </a>
+
     <div class="scores">
       <span id="playerNameHud" class="hud-name" title="Нажмите, чтобы изменить имя/группу">—</span>
       <span id="score">0</span>
@@ -27,15 +37,31 @@
   </div>
 </div>
 
-<!-- ЕДИНОЕ окно ввода/смены имени+группы -->
+<!-- Окно ввода/смены имени+группы -->
 <div id="nameModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="nameTitle">
   <div class="modal-card">
     <h2 id="nameTitle">Сонная овечка Института Цифры</h2>
     <p id="nameDesc" class="muted">Введите имя и группу</p>
 
     <div class="form-row">
-      <input id="nameModalInput" type="text" maxlength="40" placeholder="Имя и Фамилия" />
-      <input id="groupModalInput" type="text" maxlength="24" placeholder="Например, ФИТ-231" />
+      <label for="nameModalInput" class="sr-only">Имя и Фамилия</label>
+      <input
+              id="nameModalInput"
+              type="text"
+              maxlength="40"
+              placeholder="Имя и Фамилия"
+              aria-label="Имя и Фамилия"
+              aria-describedby="nameDesc"
+      />
+      <label for="groupModalInput" class="sr-only">Группа</label>
+      <input
+              id="groupModalInput"
+              type="text"
+              maxlength="24"
+              placeholder="Например, ФИТ-231"
+              aria-label="Группа"
+              aria-describedby="nameDesc"
+      />
       <div id="nameError" class="form-error" aria-live="polite"></div>
     </div>
 
@@ -46,7 +72,7 @@
   </div>
 </div>
 
-<!-- Окно меню: лидерборд + кнопка старт -->
+<!-- Меню с лидербордом -->
 <div id="menuModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
   <div class="modal-card">
     <h2 id="menuTitle">Сонная овечка Института Цифры</h2>
@@ -85,6 +111,6 @@
   <button id="duckBtn" aria-label="Пригиб">⤓</button>
 </div>
 
-<script type="module" src="./src/main.js"></script>
+<script type="module" src="src/main.js"></script>
 </body>
 </html>

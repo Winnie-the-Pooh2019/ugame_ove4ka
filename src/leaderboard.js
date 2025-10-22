@@ -1,7 +1,6 @@
-// Клиентский слой лидерборда: localStorage для игрока + обращение к серверу
+// Клиент лидерборда: localStorage для игрока + запросы к серверу
 const API_BASE = '/api';
 const KEY_PLAYER = 'sleepSheep.player';
-const KEY_HI     = 'sleepSheep.hi';
 
 // Имя: буквы + пробелы; Группа: буквы/цифры + дефис (UPPER)
 const NAME_RE  = /^[A-Za-zА-Яа-яЁё]+(?: [A-Za-zА-Яа-яЁё]+)*$/u;
@@ -50,7 +49,7 @@ function sanitizeClientGroup(group, maxLen = 24) {
   return { ok: true, value: s };
 }
 
-// Регистрация профиля (имя + группа)
+// Регистрация профиля
 export async function registerProfile(name, group) {
   const n = sanitizeClientName(name);
   if (!n.ok) return { ok: false, reason: n.reason };
@@ -64,17 +63,16 @@ export async function registerProfile(name, group) {
     });
     const player = { name: n.value, group: g.value, best: Number(res?.player?.best) || 0 };
     writeJSON(KEY_PLAYER, player);
-    localStorage.setItem(KEY_HI, String(player.best || 0));
     return { ok: true, player };
   } catch (e) {
-    if (e.payload?.error === 'NAME_TAKEN' || e.status === 409) return { ok: false, reason: 'NAME_TAKEN' }; // уникальность только по имени
+    if (e.payload?.error === 'NAME_TAKEN' || e.status === 409) return { ok: false, reason: 'NAME_TAKEN' };
     if (e.payload?.error === 'BAD_NAME') return { ok: false, reason: 'BAD_NAME' };
     if (e.payload?.error === 'BAD_GROUP') return { ok: false, reason: 'BAD_GROUP' };
     return { ok: false, reason: 'NETWORK' };
   }
 }
 
-// Смена профиля (имя + группа)
+// Смена профиля
 export async function changeProfile(name, group) {
   const me = getPlayer();
   if (!me) return { ok: false, reason: 'NO_PLAYER' };
@@ -101,6 +99,7 @@ export async function changeProfile(name, group) {
   }
 }
 
+// Сохранение результата
 export async function submitScore(scoreRaw) {
   const player = getPlayer();
   if (!player) throw new Error('NO_PLAYER');
@@ -114,7 +113,6 @@ export async function submitScore(scoreRaw) {
   const best = Number(res?.best) || Math.max(player.best, score);
   const updated = { name: player.name, group: player.group, best };
   writeJSON(KEY_PLAYER, updated);
-  localStorage.setItem(KEY_HI, String(updated.best || 0));
 
   return {
     best: updated.best,
@@ -123,6 +121,7 @@ export async function submitScore(scoreRaw) {
   };
 }
 
+// Получение таблицы лидеров
 export async function fetchLeaderboard(limit = 10) {
   const res = await jsonFetch(`${API_BASE}/leaderboard?limit=${encodeURIComponent(limit)}`);
   return { top10: res?.top10 || [], total: Number(res?.total) || 0 };

@@ -2,7 +2,7 @@ import { clamp, rnd } from './utils.js';
 import { CLOUD_SIZE, LOW_CLOUD_DRAW_OFFSET, SHEEP_ANIM } from './config.js';
 import { getObstacleHitbox, getPlayerHitbox } from './hitbox.js';
 
-// Примитивы
+// Прямоугольник со скруглениями
 export function roundRect(ctx, x, y, w, h, r) {
   const rr = Math.min(r, w/2, h/2);
   ctx.beginPath();
@@ -14,6 +14,7 @@ export function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
+// Контур облака
 export function roundedCloud(ctx, x, y, w, h) {
   ctx.beginPath();
   ctx.moveTo(x, y + h);
@@ -23,6 +24,7 @@ export function roundedCloud(ctx, x, y, w, h) {
   ctx.closePath();
 }
 
+// Мягкая "подушка" на земле
 export function drawPillow(ctx, x, y, w, h, alpha=1) {
   ctx.save();
   ctx.globalAlpha = alpha;
@@ -32,7 +34,7 @@ export function drawPillow(ctx, x, y, w, h, alpha=1) {
   ctx.restore();
 }
 
-// Фон и фоновые облака (обновляет и рисует)
+// Фон и облака
 export function drawBackground(ctx, state, dt) {
   const { VW, VH, groundY } = state.metrics;
 
@@ -51,17 +53,13 @@ export function drawBackground(ctx, state, dt) {
     ctx.fill();
   });
 
-  // Луна
+  // Луна (серп)
   ctx.save();
   ctx.translate(VW - 90, 60);
   ctx.fillStyle = '#f3eacb';
-  ctx.beginPath();
-  ctx.arc(0, 0, 18, 0, Math.PI*2);
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI*2); ctx.fill();
   ctx.globalCompositeOperation = 'destination-out';
-  ctx.beginPath();
-  ctx.arc(-6, -4, 18, 0, Math.PI*2);
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(-6, -4, 18, 0, Math.PI*2); ctx.fill();
   ctx.restore();
 
   // Фоновые облака
@@ -108,7 +106,7 @@ export function drawBackground(ctx, state, dt) {
   }
 }
 
-// Вспомогательная — отрисовка с pixel snapping
+// Рисунок с "pixel snapping"
 function drawImageSnapped(ctx, img, x, y, w, h) {
   if (SHEEP_ANIM.pixelSnap) {
     const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
@@ -118,11 +116,10 @@ function drawImageSnapped(ctx, img, x, y, w, h) {
   ctx.drawImage(img, x, y, w, h);
 }
 
-// Игрок (бег/прыжок/пригиб)
+// Овечка
 export function drawPlayerSheep(ctx, state, IMGS) {
   const p = state.player;
 
-  // Подготовим кадры бега
   const frames = (SHEEP_ANIM.runFrameKeys || [])
       .map(k => IMGS[k])
       .filter(Boolean);
@@ -151,7 +148,7 @@ export function drawPlayerSheep(ctx, state, IMGS) {
   if (img) {
     drawImageSnapped(ctx, img, p.x + off.x, p.y + off.y, p.w, p.h);
   } else {
-    // Фолбэк-рисунок
+    // Фолбэк, если нет спрайтов
     ctx.fillStyle = '#f6f7fb';
     roundRect(ctx, p.x, p.y, p.w, p.h, 10); ctx.fill();
     ctx.fillStyle = '#e7e9f3';
@@ -178,6 +175,7 @@ export function drawPlayerSheep(ctx, state, IMGS) {
   ctx.ellipse(p.x + p.w/2, shadowY, shadowW/2, 4, 0, 0, Math.PI*2);
   ctx.fill();
 
+  // Отладочные хитбоксы
   if (state.debug.showBoxes) {
     const hb = getPlayerHitbox(p);
     ctx.save();
@@ -202,7 +200,7 @@ export function drawObstacle(ctx, state, o, IMGS) {
     }
   } else if (o.kind === 'lowcloud') {
     const img = IMGS.cloud;
-    const drawY = o.y + LOW_CLOUD_DRAW_OFFSET; // визуальный сдвиг вниз
+    const drawY = o.y + LOW_CLOUD_DRAW_OFFSET;
     if (img) {
       ctx.save(); ctx.globalAlpha = 0.9;
       ctx.drawImage(img, o.x, drawY, o.w, o.h);

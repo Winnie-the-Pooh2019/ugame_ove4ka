@@ -1,3 +1,4 @@
+// Клавиатура + тач
 export function setupInput({ onToggleHitbox }, { jumpBtn, duckBtn }) {
   const keys = new Set();
   let touchJump = false;
@@ -6,10 +7,9 @@ export function setupInput({ onToggleHitbox }, { jumpBtn, duckBtn }) {
   function wantJump() { return keys.has('Space') || keys.has('ArrowUp') || touchJump; }
   function wantDuck() { return keys.has('ArrowDown') || touchDuck; }
 
-  // Определяем, печатает ли сейчас пользователь в поле ввода
+  // Пользователь печатает в поле ввода?
   const isTypingTarget = (target) => {
     if (!target) return false;
-    // Любой input/textarea или contenteditable — считаем режимом ввода текста
     const el = target.closest ? target.closest('input, textarea, [contenteditable="true"]') : null;
     return !!el;
   };
@@ -17,11 +17,10 @@ export function setupInput({ onToggleHitbox }, { jumpBtn, duckBtn }) {
   window.addEventListener('keydown', (e) => {
     const typing = isTypingTarget(e.target);
 
-    // Эти клавиши мы блокируем только если пользователь НЕ печатает в поле ввода
+    // Блокируем прокрутку/скролл только когда не печатаем
     const controlKeys = ['Space','ArrowUp','ArrowDown','KeyH'];
     if (!typing && controlKeys.includes(e.code)) e.preventDefault();
 
-    // Игровые хоткеи не должны срабатывать во время ввода текста
     if (typing) return;
 
     if (e.code === 'KeyH') onToggleHitbox?.();
@@ -29,7 +28,6 @@ export function setupInput({ onToggleHitbox }, { jumpBtn, duckBtn }) {
   });
 
   window.addEventListener('keyup', (e) => {
-    // Во время ввода текста не трогаем набор активных клавиш игры
     if (isTypingTarget(e.target)) return;
     keys.delete(e.code);
   });

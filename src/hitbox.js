@@ -1,6 +1,6 @@
 import { PLAYER_BOX, HITBOX } from './config.js';
 
-// Прямоугольный хитбокс игрока (с пригибом)
+// Хитбокс игрока (с учётом пригиба)
 export function getPlayerHitbox(p) {
   const bottomY = p.y + p.h - p.h * PLAYER_BOX.bottom;
   const fullH = p.h * (1 - PLAYER_BOX.top - PLAYER_BOX.bottom);
@@ -11,7 +11,7 @@ export function getPlayerHitbox(p) {
   return { x, y, w, h };
 }
 
-// Прямоугольный хитбокс препятствия с независимыми отступами
+// Хитбокс препятствия (с отступами по конфигу)
 export function getObstacleHitbox(o) {
   const cfg = HITBOX[o.kind];
   if (!cfg) return { x: o.x, y: o.y, w: o.w, h: o.h };
@@ -22,6 +22,7 @@ export function getObstacleHitbox(o) {
   return { x, y, w, h };
 }
 
+// Пересечение AABB
 export function aabb(a, b) {
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 }

@@ -30,25 +30,25 @@ function getPid(req) {
     return (typeof pid === 'string' && pid.length > 0) ? pid : null;
 }
 
-// Валидация/нормализация
-const DASHES_RE = /[‐‑‒–—―]/g; // все виды тире → "-"
-const NAME_RE  = /^[A-Za-zА-Яа-яЁё]+(?: [A-Za-zА-Яа-яЁё]+)*$/u;                  // буквы и пробелы
-const GROUP_RE = /^[A-Za-zА-Яа-яЁё0-9]+(?:-[A-Za-zА-Яа-яЁё0-9]+)*$/u;            // буквы/цифры и дефис
+// Нормализация
+const DASHES_RE = /[‐‑‒–—―]/g;
+const NAME_RE  = /^[A-Za-zА-Яа-яЁё]+(?: [A-Za-zА-Яа-яЁё]+)*$/u;
+const GROUP_RE = /^[A-Za-zА-Яа-яЁё0-9]+(?:-[A-Za-zА-Яа-яЁё0-9]+)*$/u;
 
 function sanitizeName(raw, maxLen = 40) {
     let s = String(raw ?? '').trim().slice(0, maxLen);
     if (!s) return { ok: false, reason: 'EMPTY_NAME', value: '' };
-    s = s.replace(/\s+/g, ' ').trim(); // схлопываем пробелы
+    s = s.replace(/\s+/g, ' ').trim();
     if (!NAME_RE.test(s)) return { ok: false, reason: 'BAD_NAME', value: s };
     return { ok: true, value: s };
 }
 function sanitizeGroup(raw, maxLen = 24) {
     let s = String(raw ?? '').trim().slice(0, maxLen);
     if (!s) return { ok: false, reason: 'EMPTY_GROUP', value: '' };
-    s = s.replace(DASHES_RE, '-');     // все тире → "-"
-    s = s.replace(/\s+/g, '');         // убираем пробелы
-    s = s.replace(/-+/g, '-');         // схлопываем повторные дефисы
-    s = s.toLocaleUpperCase('ru');     // UPPER
+    s = s.replace(DASHES_RE, '-');
+    s = s.replace(/\s+/g, '');
+    s = s.replace(/-+/g, '-');
+    s = s.toLocaleUpperCase('ru');
     if (!GROUP_RE.test(s)) return { ok: false, reason: 'BAD_GROUP', value: s };
     return { ok: true, value: s };
 }
@@ -62,18 +62,7 @@ const app = express();
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 
-// Диагностика
-app.get('/api/me', (req, res) => {
-    const pid = getPid(req);
-    const all = ensureArray(loadAll());
-    const me = pid ? all.find(x => x.pid === pid) : null;
-    res.json({
-        pid: pid || null,
-        player: me ? { name: me.name, group: me.group, best: me.best, createdAt: me.createdAt } : null
-    });
-});
-
-// Регистрация профиля (уникальность по имени)
+// Регистрация профиля
 app.post('/api/register', (req, res) => {
     const { name, group } = req.body || {};
     const n = sanitizeName(name);
@@ -109,7 +98,7 @@ app.post('/api/register', (req, res) => {
     res.json({ ok: true, player: { name: rec.name, group: rec.group, best: rec.best } });
 });
 
-// Смена имени/группы (уникальность по имени)
+// Смена имени/группы
 app.post('/api/change-name', (req, res) => {
     const pid = getPid(req);
     if (!pid) return res.status(401).json({ error: 'NO_SESSION' });

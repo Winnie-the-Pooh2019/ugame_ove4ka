@@ -1,5 +1,6 @@
 let audioCtx = null;
 
+// Короткий звук-акцент (прыжок/результат)
 export function blip(freq = 880, dur = 0.06, detune = 0) {
   try {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();

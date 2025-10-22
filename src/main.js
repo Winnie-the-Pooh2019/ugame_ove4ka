@@ -35,11 +35,17 @@ const menuModal = document.getElementById('menuModal');
 
 const failModal = document.getElementById('failModal');
 const failCard = document.getElementById('failCard');
-const failTitle = document.getElementById('failTitle');
 const failBadge = document.getElementById('failBadge');
 const failScoreEl = document.getElementById('failScore');
 const failRestartBtn = document.getElementById('failRestartBtn');
 const failMenuBtn = document.getElementById('failMenuBtn');
+
+/* Управление видимостью тач-кнопок */
+const touchControls = document.querySelector('.touch-controls');
+function showTouchControls(on) {
+  if (!touchControls) return;
+  touchControls.classList.toggle('active', !!on);
+}
 
 const state = createState();
 let IMGS = {};
@@ -47,7 +53,7 @@ let lastTs = performance.now();
 
 loadAssets(ASSET_PATHS).then(imgs => { IMGS = imgs; });
 
-// DPR
+/* Canvas DPR */
 function setupCanvas() {
   const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
   canvas.width = VW * dpr;
@@ -58,13 +64,13 @@ function setupCanvas() {
 setupCanvas();
 window.addEventListener('resize', setupCanvas);
 
-// Input
+/* Input */
 const input = setupInput(
     { onToggleHitbox: () => { state.debug.showBoxes = !state.debug.showBoxes; } },
     { jumpBtn, duckBtn }
 );
 
-// Helpers: UI
+/* UI helpers */
 function setNameError(msg='') {
   nameError.textContent = msg || '';
   const isGroup = /групп|group/i.test(msg);
@@ -76,8 +82,7 @@ function openNameModal(mode='register') {
   if (mode === 'register') {
     nameTitle.textContent = 'Введите имя и группу';
     nameDesc.textContent = 'Имя: буквы и пробелы. Группа: буквы, цифры и дефис “-” (автоматически upper-case).';
-    nameInput.value = '';
-    groupInput.value = '';
+    nameInput.value = ''; groupInput.value = '';
   } else {
     const me = getPlayer();
     nameTitle.textContent = 'Сменить имя и/или группу';
@@ -91,29 +96,31 @@ function openNameModal(mode='register') {
   nameModal.classList.remove('hidden');
   menuModal.classList.add('hidden');
   closeFail();
+  showTouchControls(false);
   nameInput.focus();
 }
 function closeNameModal() { nameModal.classList.add('hidden'); }
-function openMenu() { menuModal.classList.remove('hidden'); closeFail(); }
+function openMenu() { menuModal.classList.remove('hidden'); closeFail(); showTouchControls(false); }
 function closeMenu() { menuModal.classList.add('hidden'); }
 
-// Экран поражения
+/* Поражение */
 function openFail(score=0, isRecord=false) {
   if (failScoreEl) failScoreEl.textContent = Math.floor(score).toString();
   failBadge?.classList.toggle('hidden', !isRecord);
   failCard?.classList.toggle('record', !!isRecord);
   failModal?.classList.remove('hidden');
+  showTouchControls(false);
   closeMenu();
 }
 function closeFail() { failModal?.classList.add('hidden'); }
 
-// Форматирование очков: 12 345
+/* Форматирование очков для UI */
 function formatScore(n) {
   const s = Math.floor(Number(n) || 0).toString();
   return s.replace(/\B(?=(\d{3})+(?!\d))/g, ' '); // thin space
 }
 
-// Скелетон-лидерборд
+/* Лоадер для лидерборда */
 function showLbLoading(count = 8) {
   lbList.classList.add('loading');
   lbList.innerHTML = '';
@@ -132,7 +139,7 @@ function showLbLoading(count = 8) {
   }
 }
 
-// Рендер лидерборда (glass версии)
+/* Рендер лидерборда */
 function renderLeaderboardUI(top10 = [], total = 0) {
   lbList.classList.remove('loading');
   lbList.innerHTML = '';
@@ -169,18 +176,16 @@ async function refreshLeaderboard() {
   }
 }
 
+/* Применить имя/группу в HUD и HI */
 function applyPlayerUI() {
   const p = getPlayer();
-  const hi = p?.best ? Math.floor(p.best) : 0;
-  state.hiScore = hi;
-  elHi.textContent = 'HI ' + hi;
-
-  const header = p ? `${p.group} · ${p.name}` : '—';
-  elPlayerName.textContent = header;
+  elPlayerName.textContent = p ? `${p.group} · ${p.name}` : '—';
   elPlayerName.title = p ? 'Нажмите, чтобы изменить имя/группу' : 'Укажите имя и группу';
+  const hi = p?.best ? Math.floor(p.best) : 0;
+  elHi.textContent = 'HI ' + hi;
 }
 
-// Сохранение профиля
+/* Сохранение профиля */
 async function submitName() {
   const mode = nameModal.dataset.mode || 'register';
   const rawName = nameInput.value || '';
@@ -220,11 +225,12 @@ async function submitName() {
   }
 }
 
-// Слушатели модалок
+/* Слушатели модалок */
 nameSaveBtn.addEventListener('click', submitName);
 nameCancelBtn.addEventListener('click', () => {
   if (canEnterName()) {
     setNameError('Чтобы начать игру, укажите имя и группу.');
+    showTouchControls(false);
     nameInput.focus();
   } else {
     closeNameModal();
@@ -241,19 +247,20 @@ nameCancelBtn.addEventListener('click', () => {
   });
 });
 
-// Смена профиля по клику на HUD
+/* Смена профиля по клику на HUD */
 elPlayerName?.addEventListener('click', () => {
   const me = getPlayer();
   if (!me) return openNameModal('register');
   openNameModal('change');
 });
 
-// Кнопки модалки поражения
+/* Кнопки модалки поражения */
 failRestartBtn?.addEventListener('click', () => {
   closeFail();
   state.started = true;
   state.running = true;
   state.gameOver = false;
+  showTouchControls(true);
   resetGame(state);
 });
 failMenuBtn?.addEventListener('click', () => {
@@ -261,22 +268,24 @@ failMenuBtn?.addEventListener('click', () => {
   openMenu();
 });
 
-// Старт
+/* Старт */
 startBtn.addEventListener('click', async () => {
   if (canEnterName()) return openNameModal('register');
   state.started = true;
   state.running = true;
   state.gameOver = false;
   closeMenu();
+  showTouchControls(true);
   resetGame(state);
 });
 
-// Инициализация UI
+/* Инициализация UI */
 applyPlayerUI();
 refreshLeaderboard().catch(()=>{});
-if (canEnterName()) openNameModal('register'); else openMenu();
+if (canEnterName()) { openNameModal('register'); showTouchControls(false); }
+else { openMenu(); }
 
-// Вспомогательное: аспект изображения
+/* Вспомогательное */
 function getAspect(key, fallback=1) {
   const img = IMGS[key];
   const w = img?.naturalWidth || img?.width;
@@ -284,7 +293,7 @@ function getAspect(key, fallback=1) {
   return w && h ? w/h : fallback;
 }
 
-// Гейм-цикл
+/* Игровой цикл */
 function update(dt) {
   if (!state.running) return;
 
@@ -315,13 +324,7 @@ function update(dt) {
 
   // Приземление
   const groundY = state.metrics.groundY;
-  if (p.y + p.h >= groundY) {
-    p.y = groundY - p.h;
-    p.vy = 0;
-    p.onGround = true;
-  } else {
-    p.onGround = false;
-  }
+  if (p.y + p.h >= groundY) { p.y = groundY - p.h; p.vy = 0; p.onGround = true; } else { p.onGround = false; }
 
   // Анимация бега
   const framesAvail = (SHEEP_ANIM.runFrameKeys.map(k => IMGS[k]).filter(Boolean).length) || 1;
@@ -332,8 +335,7 @@ function update(dt) {
     state.anim.runPhase = (state.anim.runPhase + dt * cyclesPerSec) % 1;
     state.anim.runFrame = Math.floor(state.anim.runPhase * framesAvail) % framesAvail;
   } else {
-    state.anim.runPhase = 0;
-    state.anim.runFrame = 0;
+    state.anim.runPhase = 0; state.anim.runFrame = 0;
   }
 
   // Спавн препятствий
@@ -343,7 +345,7 @@ function update(dt) {
     spawnObstacle(state, IMGS, getAspect);
   }
 
-  // Движение препятствий
+  // Движение
   updateObstacles(state, dt);
 
   // Счёт
@@ -353,16 +355,11 @@ function update(dt) {
   const hbPlayer = getPlayerHitbox(p);
   for (const o of state.obstacles) {
     const hbObs = getObstacleHitbox(o);
-    if (aabb(hbPlayer, hbObs)) {
-      endGame();
-      break;
-    }
+    if (aabb(hbPlayer, hbObs)) { endGame(); break; }
   }
 
   // HUD
-  const myBest = getPlayer()?.best || 0;
   elScore.textContent = Math.floor(state.score).toString();
-  elHi.textContent = 'HI ' + myBest;
 }
 
 function render(dt) {
@@ -371,7 +368,7 @@ function render(dt) {
   state.obstacles.forEach(o => drawObstacle(ctx, state, o, IMGS));
   drawPlayerSheep(ctx, state, IMGS);
 
-  // «Z»
+  // «Z» над овечкой, когда стоит
   if (state.player.onGround) {
     ctx.fillStyle = 'rgba(255,255,255,0.12)';
     ctx.font = '12px var(--font-ui)';
@@ -401,16 +398,16 @@ async function endGame() {
   const finalizedScore = Math.floor(state.score);
   const prevBest = getPlayer()?.best || 0;
 
-  let bestFromServer = prevBest;
   try {
     const { best } = await submitScore(finalizedScore);
-    bestFromServer = Number(best) || prevBest;
+    const bestFromServer = Number(best) || prevBest;
 
     const isRecord = finalizedScore > prevBest && bestFromServer === finalizedScore;
     if (isRecord) { blip(660, 0.08, 0); setTimeout(() => blip(990, 0.1, 0), 100); }
     else { blip(140, 0.08, -12); }
 
     await refreshLeaderboard();
+    applyPlayerUI(); // обновить HI в HUD после сохранения
     openFail(finalizedScore, isRecord);
   } catch {
     await refreshLeaderboard().catch(()=>{});

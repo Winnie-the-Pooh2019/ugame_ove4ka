@@ -1,6 +1,6 @@
 import {
   VW, VH, GROUND_OFFSET, PHYSICS, PROGRESSION, BG_TIMERS,
-  DEBUG_DEFAULTS, PLAYER_BOX, HITBOX, STORAGE_KEY,
+  DEBUG_DEFAULTS, PLAYER_BOX, HITBOX,
   PLAYER_BASE_SIZE, SHEEP_SCALE
 } from './config.js';
 
@@ -19,7 +19,6 @@ export function createState() {
 
     // Прогресс
     score: 0,
-    hiScore: Number(localStorage.getItem(STORAGE_KEY) || 0),
 
     // Физика/скорость
     gravity: PHYSICS.gravity,
@@ -65,7 +64,7 @@ export function resetGame(state) {
   state.obstTimer = 0;
   state.bgCloudTimer = 0;
 
-  // Сброс игрока с актуальным размером
+  // Сброс игрока
   state.player = { x: 90, y: groundY - size, w: size, h: size, vy: 0, onGround: true, duck: false };
 
   state.gameOver = false;
