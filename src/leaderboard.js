@@ -1,107 +1,129 @@
-// Локальный лидерборд на localStorage
-// Структура:
-// - KEY_PLAYER: { name: string, best: number, createdAt: number }
-// - KEY_BOARD:  [{ name: string, score: number, createdAt?: number }]
-//
-// Имя меняется только один раз: если уже есть игрок в KEY_PLAYER — регистрировать заново нельзя.
-
+// Клиентский слой лидерборда: localStorage для игрока + обращение к серверу
+const API_BASE = '/api';
 const KEY_PLAYER = 'sleepSheep.player';
-const KEY_BOARD  = 'sleepSheep.board';
-const KEY_HI     = 'sleepSheep.hi'; // совместимость со старым "HI"
+const KEY_HI     = 'sleepSheep.hi';
+
+// Имя: буквы + пробелы; Группа: буквы/цифры + дефис (UPPER)
+const NAME_RE  = /^[A-Za-zА-Яа-яЁё]+(?: [A-Za-zА-Яа-яЁё]+)*$/u;
+const GROUP_RE = /^[A-Za-zА-Яа-яЁё0-9]+(?:-[A-Za-zА-Яа-яЁё0-9]+)*$/u;
+const DASHES_RE = /[‐‑‒–—―]/g;
 
 function readJSON(key, fallback) {
-  try {
-    const s = localStorage.getItem(key);
-    if (!s) return fallback;
-    return JSON.parse(s);
-  } catch {
-    return fallback;
+  try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : fallback; }
+  catch { return fallback; }
+}
+function writeJSON(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
+
+async function jsonFetch(url, options = {}) {
+  const r = await fetch(url, {
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json', ...(options.headers||{}) },
+    ...options
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    const err = new Error(data?.error || `HTTP ${r.status}`);
+    err.status = r.status; err.payload = data; throw err;
   }
-}
-function writeJSON(key, value) {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* ignore */ }
+  return data;
 }
 
-// Публичные API
-
-// Возвращает { name, best } или null, если игрок ещё не регистрировался
 export function getPlayer() {
   const p = readJSON(KEY_PLAYER, null);
-  if (!p || typeof p.name !== 'string') return null;
-  return { name: p.name, best: Number(p.best) || 0 };
+  if (!p || !p.name || !p.group) return null;
+  return { name: p.name, group: p.group, best: Number(p.best) || 0 };
+}
+export function canEnterName() { return !getPlayer(); }
+
+function sanitizeClientName(name, maxLen = 40) {
+  let s = String(name || '').trim().slice(0, maxLen);
+  if (!s) return { ok: false, reason: 'EMPTY_NAME', value: '' };
+  s = s.replace(/\s+/g, ' ').trim();
+  if (!NAME_RE.test(s)) return { ok: false, reason: 'BAD_NAME', value: s };
+  return { ok: true, value: s };
+}
+function sanitizeClientGroup(group, maxLen = 24) {
+  let s = String(group || '').trim().slice(0, maxLen);
+  if (!s) return { ok: false, reason: 'EMPTY_GROUP', value: '' };
+  s = s.replace(DASHES_RE, '-').replace(/\s+/g, '').replace(/-+/g, '-').toLocaleUpperCase('ru');
+  if (!GROUP_RE.test(s)) return { ok: false, reason: 'BAD_GROUP', value: s };
+  return { ok: true, value: s };
 }
 
-// Регистрация имени один раз. Если игрок уже есть — вернёт существующего и ok:false
-export function registerNameOnce(name) {
-  const existing = readJSON(KEY_PLAYER, null);
-  if (existing && existing.name) {
-    return { ok: false, player: { name: existing.name, best: Number(existing.best) || 0 } };
-  }
-  const player = { name: String(name).slice(0, 40), best: 0, createdAt: Date.now() };
-  writeJSON(KEY_PLAYER, player);
+// Регистрация профиля (имя + группа)
+export async function registerProfile(name, group) {
+  const n = sanitizeClientName(name);
+  if (!n.ok) return { ok: false, reason: n.reason };
+  const g = sanitizeClientGroup(group);
+  if (!g.ok) return { ok: false, reason: g.reason };
 
-  // Обеспечим запись на доске, если такого имени не было
-  const board = readJSON(KEY_BOARD, []);
-  const idx = board.findIndex(e => e && e.name === player.name);
-  if (idx === -1) {
-    board.push({ name: player.name, score: 0, createdAt: Date.now() });
-    writeJSON(KEY_BOARD, board);
-  }
-
-  // Дублируем best в старый HI ключ (совместимость)
-  localStorage.setItem(KEY_HI, String(player.best || 0));
-  return { ok: true, player: { name: player.name, best: 0 } };
-}
-
-// Записать результат забега. Обновляет best у игрока и на доске.
-// Возвращает { best, top10, total }
-export function recordScore(scoreRaw) {
-  const score = Math.max(0, Math.floor(Number(scoreRaw) || 0));
-  const player = readJSON(KEY_PLAYER, null);
-  if (!player || !player.name) {
-    // Нет зарегистрированного игрока — ничего не делаем
-    return getLeaderboard();
-  }
-
-  // Обновляем best игрока
-  if (!Number.isFinite(player.best) || score > player.best) {
-    player.best = score;
+  try {
+    const res = await jsonFetch(`${API_BASE}/register`, {
+      method: 'POST',
+      body: JSON.stringify({ name: n.value, group: g.value })
+    });
+    const player = { name: n.value, group: g.value, best: Number(res?.player?.best) || 0 };
     writeJSON(KEY_PLAYER, player);
-    localStorage.setItem(KEY_HI, String(player.best || 0)); // совместимость
+    localStorage.setItem(KEY_HI, String(player.best || 0));
+    return { ok: true, player };
+  } catch (e) {
+    if (e.payload?.error === 'NAME_TAKEN' || e.status === 409) return { ok: false, reason: 'NAME_TAKEN' }; // уникальность только по имени
+    if (e.payload?.error === 'BAD_NAME') return { ok: false, reason: 'BAD_NAME' };
+    if (e.payload?.error === 'BAD_GROUP') return { ok: false, reason: 'BAD_GROUP' };
+    return { ok: false, reason: 'NETWORK' };
   }
-
-  // Апсертом обновляем запись на доске
-  const board = readJSON(KEY_BOARD, []);
-  const i = board.findIndex(e => e && e.name === player.name);
-  if (i === -1) {
-    board.push({ name: player.name, score: score, createdAt: Date.now() });
-  } else {
-    board[i].score = Math.max(Number(board[i].score) || 0, score);
-  }
-  writeJSON(KEY_BOARD, board);
-
-  return getLeaderboard();
 }
 
-// Получить топ и общее число участников
-export function getLeaderboard(limit = 10) {
-  const board = readJSON(KEY_BOARD, []);
-  // Сортировка: по score убыв., при равенстве — по времени создания (более ранний выше)
-  board.sort((a, b) => {
-    const ds = (Number(b.score)||0) - (Number(a.score)||0);
-    if (ds !== 0) return ds;
-    return (Number(a.createdAt)||0) - (Number(b.createdAt)||0);
+// Смена профиля (имя + группа)
+export async function changeProfile(name, group) {
+  const me = getPlayer();
+  if (!me) return { ok: false, reason: 'NO_PLAYER' };
+
+  const n = sanitizeClientName(name);
+  if (!n.ok) return { ok: false, reason: n.reason };
+  const g = sanitizeClientGroup(group);
+  if (!g.ok) return { ok: false, reason: g.reason };
+
+  try {
+    await jsonFetch(`${API_BASE}/change-name`, {
+      method: 'POST',
+      body: JSON.stringify({ name: n.value, group: g.value })
+    });
+    const updated = { name: n.value, group: g.value, best: me.best };
+    writeJSON(KEY_PLAYER, updated);
+    return { ok: true, player: updated };
+  } catch (e) {
+    if (e.payload?.error === 'NAME_TAKEN' || e.status === 409) return { ok: false, reason: 'NAME_TAKEN' };
+    if (e.payload?.error === 'BAD_NAME') return { ok: false, reason: 'BAD_NAME' };
+    if (e.payload?.error === 'BAD_GROUP') return { ok: false, reason: 'BAD_GROUP' };
+    if (e.payload?.error === 'NO_SESSION') return { ok: false, reason: 'NO_SESSION' };
+    return { ok: false, reason: 'NETWORK' };
+  }
+}
+
+export async function submitScore(scoreRaw) {
+  const player = getPlayer();
+  if (!player) throw new Error('NO_PLAYER');
+
+  const score = Math.max(0, Math.floor(Number(scoreRaw) || 0));
+  const res = await jsonFetch(`${API_BASE}/submit-score`, {
+    method: 'POST',
+    body: JSON.stringify({ score })
   });
-  const top10 = board.slice(0, limit).map((e, i) => ({
-    rank: i + 1,
-    name: e.name,
-    score: Number(e.score) || 0
-  }));
-  return { top10, total: board.length };
+
+  const best = Number(res?.best) || Math.max(player.best, score);
+  const updated = { name: player.name, group: player.group, best };
+  writeJSON(KEY_PLAYER, updated);
+  localStorage.setItem(KEY_HI, String(updated.best || 0));
+
+  return {
+    best: updated.best,
+    top10: res?.top10 || [],
+    total: Number(res?.total) || 0
+  };
 }
 
-// Утилита для UI: можно ли вводить имя (ещё не зарегистрирован)
-export function canEnterName() {
-  const p = readJSON(KEY_PLAYER, null);
-  return !(p && p.name);
+export async function fetchLeaderboard(limit = 10) {
+  const res = await jsonFetch(`${API_BASE}/leaderboard?limit=${encodeURIComponent(limit)}`);
+  return { top10: res?.top10 || [], total: Number(res?.total) || 0 };
 }

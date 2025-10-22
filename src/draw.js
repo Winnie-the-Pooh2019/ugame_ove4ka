@@ -1,5 +1,5 @@
 import { clamp, rnd } from './utils.js';
-import { CLOUD_SIZE } from './config.js';
+import { CLOUD_SIZE, LOW_CLOUD_DRAW_OFFSET, SHEEP_ANIM } from './config.js';
 import { getObstacleHitbox, getPlayerHitbox } from './hitbox.js';
 
 // Примитивы
@@ -108,12 +108,48 @@ export function drawBackground(ctx, state, dt) {
   }
 }
 
-// Игрок
+// Вспомогательная — отрисовка с pixel snapping
+function drawImageSnapped(ctx, img, x, y, w, h) {
+  if (SHEEP_ANIM.pixelSnap) {
+    const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    x = Math.round(x * dpr) / dpr;
+    y = Math.round(y * dpr) / dpr;
+  }
+  ctx.drawImage(img, x, y, w, h);
+}
+
+// Игрок (бег/прыжок/пригиб)
 export function drawPlayerSheep(ctx, state, IMGS) {
   const p = state.player;
-  const img = IMGS.sheep;
+
+  // Подготовим кадры бега
+  const frames = (SHEEP_ANIM.runFrameKeys || [])
+      .map(k => IMGS[k])
+      .filter(Boolean);
+
+  const isRunning = p.onGround && !p.duck && state.running;
+  const isDuck = p.onGround && p.duck;
+  const isJump = !p.onGround;
+
+  let img = null;
+  let off = { x: 0, y: 0 };
+
+  if (isDuck && (IMGS.sheepLay || frames[0] || IMGS.sheep)) {
+    img = IMGS.sheepLay || frames[0] || IMGS.sheep;
+    off = SHEEP_ANIM.layOffset || off;
+  } else if (isJump && (IMGS.sheepJump || frames[0] || IMGS.sheep)) {
+    img = IMGS.sheepJump || frames[0] || IMGS.sheep;
+    off = SHEEP_ANIM.jumpOffset || off;
+  } else if (isRunning && frames.length >= 2) {
+    const idx = state.anim.runFrame % frames.length;
+    img = frames[idx];
+    off = (SHEEP_ANIM.offsets && SHEEP_ANIM.offsets[idx]) || off;
+  } else {
+    img = IMGS.sheep || frames[0];
+  }
+
   if (img) {
-    ctx.drawImage(img, p.x, p.y, p.w, p.h);
+    drawImageSnapped(ctx, img, p.x + off.x, p.y + off.y, p.w, p.h);
   } else {
     // Фолбэк-рисунок
     ctx.fillStyle = '#f6f7fb';
@@ -166,13 +202,14 @@ export function drawObstacle(ctx, state, o, IMGS) {
     }
   } else if (o.kind === 'lowcloud') {
     const img = IMGS.cloud;
+    const drawY = o.y + LOW_CLOUD_DRAW_OFFSET; // визуальный сдвиг вниз
     if (img) {
       ctx.save(); ctx.globalAlpha = 0.9;
-      ctx.drawImage(img, o.x, o.y, o.w, o.h);
+      ctx.drawImage(img, o.x, drawY, o.w, o.h);
       ctx.restore();
     } else {
       ctx.save(); ctx.globalAlpha = 0.9;
-      roundedCloud(ctx, o.x, o.y, o.w, o.h);
+      roundedCloud(ctx, o.x, drawY, o.w, o.h);
       ctx.fillStyle = '#ffffff'; ctx.fill();
       ctx.restore();
     }

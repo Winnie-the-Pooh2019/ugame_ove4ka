@@ -1,7 +1,13 @@
-import { VW, VH, GROUND_OFFSET, PHYSICS, PROGRESSION, BG_TIMERS, DEBUG_DEFAULTS, PLAYER_BOX, HITBOX, STORAGE_KEY } from './config.js';
+import {
+  VW, VH, GROUND_OFFSET, PHYSICS, PROGRESSION, BG_TIMERS,
+  DEBUG_DEFAULTS, PLAYER_BOX, HITBOX, STORAGE_KEY,
+  PLAYER_BASE_SIZE, SHEEP_SCALE
+} from './config.js';
 
 export function createState() {
   const groundY = VH - GROUND_OFFSET;
+  const size = Math.round(PLAYER_BASE_SIZE * SHEEP_SCALE);
+
   return {
     // Метрики
     metrics: { VW, VH, groundY },
@@ -23,9 +29,12 @@ export function createState() {
     maxSpeed: PROGRESSION.maxSpeed,
     accelPerSec: PROGRESSION.accelPerSec,
 
-    // Игрок
-    player: { x: 90, y: groundY - 50, w: 50, h: 50, vy: 0, onGround: true, duck: false },
+    // Игрок (увеличенный размер)
+    player: { x: 90, y: groundY - size, w: size, h: size, vy: 0, onGround: true, duck: false },
     playerDuckHeight: PLAYER_BOX.duckHeight,
+
+    // Анимация овечки
+    anim: { runPhase: 0, runFrame: 0 },
 
     // Коллекции
     obstacles: [],
@@ -46,6 +55,8 @@ export function createState() {
 
 export function resetGame(state) {
   const { groundY } = state.metrics;
+  const size = Math.round(PLAYER_BASE_SIZE * SHEEP_SCALE);
+
   state.speed = PROGRESSION.speedStart;
   state.score = 0;
   state.obstacles.length = 0;
@@ -53,6 +64,11 @@ export function resetGame(state) {
   state.stars.length = 0;
   state.obstTimer = 0;
   state.bgCloudTimer = 0;
-  state.player = { x: 90, y: groundY - 50, w: 50, h: 50, vy: 0, onGround: true, duck: false };
+
+  // Сброс игрока с актуальным размером
+  state.player = { x: 90, y: groundY - size, w: size, h: size, vy: 0, onGround: true, duck: false };
+
   state.gameOver = false;
+  state.anim.runPhase = 0;
+  state.anim.runFrame = 0;
 }

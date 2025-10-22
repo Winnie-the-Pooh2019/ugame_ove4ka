@@ -1,39 +1,90 @@
 <!doctype html>
-<html lang="ru">
+<html lang="ру">
 <head>
   <meta charset="utf-8" />
   <title>Сонная Овечка</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
   <link rel="stylesheet" href="./style.css" />
+
+  <!-- Fonts: Manrope (UI) + JetBrains Mono (digits) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+          href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600&family=Manrope:wght@400;600;800&display=swap"
+          rel="stylesheet"
+  />
 </head>
 <body>
-  <div class="wrap">
-    <canvas id="game" width="800" height="300" aria-label="Игра Сонная Овечка"></canvas>
+<div class="wrap">
+  <canvas id="game" width="800" height="300" aria-label="Игра Сонная Овечка"></canvas>
 
-    <div id="hud" class="hud">
-      <div class="scores">
-        <span id="score">0</span>
-        <span id="hi">HI 0</span>
-      </div>
-      <div id="msg" class="msg">
-        <h1>Сонная Овечка</h1>
-        <p>Пробел / ↑ — прыжок, ↓ — пригиб. P — пауза, R — рестарт, H — хитбоксы</p>
-        <p>Тап слева — прыжок, справа — пригиб</p>
-        <button id="startBtn" class="btn">Начать</button>
-      </div>
-      <div id="pause" class="pause hidden">Пауза</div>
-      <div id="gameover" class="gameover hidden">
-        <div>Овечка споткнулась!</div>
-        <button id="restartBtn" class="btn">Ещё раз</button>
-      </div>
-    </div>
-
-    <div class="touch-controls">
-      <button id="jumpBtn" aria-label="Прыжок">⤒</button>
-      <button id="duckBtn" aria-label="Пригиб">⤓</button>
+  <div id="hud" class="hud">
+    <div class="scores">
+      <span id="playerNameHud" class="hud-name" title="Нажмите, чтобы изменить имя/группу">—</span>
+      <span id="score">0</span>
+      <span id="hi">HI 0</span>
     </div>
   </div>
+</div>
 
-  <script type="module" src="./src/main.js"></script>
+<!-- ЕДИНОЕ окно ввода/смены имени+группы -->
+<div id="nameModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="nameTitle">
+  <div class="modal-card">
+    <h2 id="nameTitle">Сонная овечка Института Цифры</h2>
+    <p id="nameDesc" class="muted">Введите имя и группу</p>
+
+    <div class="form-row">
+      <input id="nameModalInput" type="text" maxlength="40" placeholder="Имя и Фамилия" />
+      <input id="groupModalInput" type="text" maxlength="24" placeholder="Например, ФИТ-231" />
+      <div id="nameError" class="form-error" aria-live="polite"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button id="nameSaveBtn" class="btn primary">Сохранить</button>
+      <button id="nameCancelBtn" class="btn ghost">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<!-- Окно меню: лидерборд + кнопка старт -->
+<div id="menuModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
+  <div class="modal-card">
+    <h2 id="menuTitle">Сонная овечка Института Цифры</h2>
+    <p class="muted">Пробел / ↑ — прыжок, ↓ — пригиб. H — хитбоксы. На мобильном — кнопки снизу.</p>
+
+    <div id="leaderboard" class="leaderboard">
+      <h3>Топ‑10 (Они получат бесплатный билет на концерт Где живут сны)</h3>
+      <ol id="lbList" class="lb-list"></ol>
+      <div id="lbTotal" class="lb-total"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button id="startBtn" class="btn primary">Начать</button>
+    </div>
+  </div>
+</div>
+
+<!-- Окно поражения -->
+<div id="failModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="failTitle">
+  <div class="modal-card fail" id="failCard">
+    <h2 id="failTitle">
+      Овечка врезалась
+      <span id="failBadge" class="badge hidden" aria-live="polite">Новый рекорд!</span>
+    </h2>
+    <p class="muted">Счёт: <span id="failScore">0</span></p>
+    <div class="modal-actions">
+      <button id="failRestartBtn" class="btn primary">Начать заново</button>
+      <button id="failMenuBtn" class="btn ghost">Меню</button>
+    </div>
+  </div>
+</div>
+
+<!-- Мобильные кнопки -->
+<div class="touch-controls">
+  <button id="jumpBtn" aria-label="Прыжок">⤒</button>
+  <button id="duckBtn" aria-label="Пригиб">⤓</button>
+</div>
+
+<script type="module" src="./src/main.js"></script>
 </body>
 </html>

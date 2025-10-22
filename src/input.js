@@ -1,4 +1,4 @@
-export function setupInput({ onPause, onRestart, onToggleHitbox }, { jumpBtn, duckBtn }) {
+export function setupInput({ onToggleHitbox }, { jumpBtn, duckBtn }) {
   const keys = new Set();
   let touchJump = false;
   let touchDuck = false;
@@ -6,14 +6,33 @@ export function setupInput({ onPause, onRestart, onToggleHitbox }, { jumpBtn, du
   function wantJump() { return keys.has('Space') || keys.has('ArrowUp') || touchJump; }
   function wantDuck() { return keys.has('ArrowDown') || touchDuck; }
 
+  // Определяем, печатает ли сейчас пользователь в поле ввода
+  const isTypingTarget = (target) => {
+    if (!target) return false;
+    // Любой input/textarea или contenteditable — считаем режимом ввода текста
+    const el = target.closest ? target.closest('input, textarea, [contenteditable="true"]') : null;
+    return !!el;
+  };
+
   window.addEventListener('keydown', (e) => {
-    if (['Space','ArrowUp','ArrowDown','KeyP','KeyR','KeyH'].includes(e.code)) e.preventDefault();
-    if (e.code === 'KeyP') onPause?.();
-    else if (e.code === 'KeyR') onRestart?.();
-    else if (e.code === 'KeyH') onToggleHitbox?.();
+    const typing = isTypingTarget(e.target);
+
+    // Эти клавиши мы блокируем только если пользователь НЕ печатает в поле ввода
+    const controlKeys = ['Space','ArrowUp','ArrowDown','KeyH'];
+    if (!typing && controlKeys.includes(e.code)) e.preventDefault();
+
+    // Игровые хоткеи не должны срабатывать во время ввода текста
+    if (typing) return;
+
+    if (e.code === 'KeyH') onToggleHitbox?.();
     else keys.add(e.code);
   });
-  window.addEventListener('keyup', (e) => { keys.delete(e.code); });
+
+  window.addEventListener('keyup', (e) => {
+    // Во время ввода текста не трогаем набор активных клавиш игры
+    if (isTypingTarget(e.target)) return;
+    keys.delete(e.code);
+  });
 
   function bindTouch(btn, setter) {
     const onDown = (e) => { e.preventDefault(); setter(true); };
