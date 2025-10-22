@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>Сонная Овечка</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="wrap">
+    <canvas id="game" width="800" height="300" aria-label="Игра Сонная Овечка"></canvas>
+
+    <div id="hud" class="hud">
+      <div class="scores">
+        <span id="score">0</span>
+        <span id="hi">HI 0</span>
+      </div>
+      <div id="msg" class="msg">
+        <h1>Сонная Овечка</h1>
+        <p>Пробел / ↑ — прыжок, ↓ — пригиб. P — пауза, R — рестарт, H — хитбоксы</p>
+        <p>Тап слева — прыжок, справа — пригиб</p>
+        <button id="startBtn" class="btn">Начать</button>
+      </div>
+      <div id="pause" class="pause hidden">Пауза</div>
+      <div id="gameover" class="gameover hidden">
+        <div>Овечка споткнулась!</div>
+        <button id="restartBtn" class="btn">Ещё раз</button>
+      </div>
+    </div>
+
+    <div class="touch-controls">
+      <button id="jumpBtn" aria-label="Прыжок">⤒</button>
+      <button id="duckBtn" aria-label="Пригиб">⤓</button>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
