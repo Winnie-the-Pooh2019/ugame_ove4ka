@@ -1,6 +1,6 @@
 import {
   VW, VH, GROUND_OFFSET, PHYSICS, PROGRESSION, BG_TIMERS,
-  DEBUG_DEFAULTS, PLAYER_BOX, HITBOX,
+  PLAYER_BOX, HITBOX,
   PLAYER_BASE_SIZE, SHEEP_SCALE
 } from './config.js';
 
@@ -46,8 +46,6 @@ export function createState() {
     bgCloudTimer: 0,
     bgCloudInterval: BG_TIMERS.cloudInterval,
 
-    // Отладка/хитбоксы
-    debug: { ...DEBUG_DEFAULTS },
     hitbox: HITBOX,
   };
 }

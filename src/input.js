@@ -1,5 +1,5 @@
 // Клавиатура + тач
-export function setupInput({ onToggleHitbox }, { jumpBtn, duckBtn }) {
+export function setupInput({ jumpBtn, duckBtn }) {
   const keys = new Set();
   let touchJump = false;
   let touchDuck = false;
@@ -18,13 +18,12 @@ export function setupInput({ onToggleHitbox }, { jumpBtn, duckBtn }) {
     const typing = isTypingTarget(e.target);
 
     // Блокируем прокрутку/скролл только когда не печатаем
-    const controlKeys = ['Space','ArrowUp','ArrowDown','KeyH'];
+    const controlKeys = ['Space','ArrowUp','ArrowDown'];
     if (!typing && controlKeys.includes(e.code)) e.preventDefault();
 
     if (typing) return;
 
-    if (e.code === 'KeyH') onToggleHitbox?.();
-    else keys.add(e.code);
+    keys.add(e.code);
   });
 
   window.addEventListener('keyup', (e) => {

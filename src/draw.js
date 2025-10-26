@@ -1,6 +1,5 @@
 import { clamp, rnd } from './utils.js';
 import { CLOUD_SIZE, LOW_CLOUD_DRAW_OFFSET, SHEEP_ANIM } from './config.js';
-import { getObstacleHitbox, getPlayerHitbox } from './hitbox.js';
 
 // Прямоугольник со скруглениями
 export function roundRect(ctx, x, y, w, h, r) {
@@ -174,15 +173,6 @@ export function drawPlayerSheep(ctx, state, IMGS) {
   ctx.beginPath();
   ctx.ellipse(p.x + p.w/2, shadowY, shadowW/2, 4, 0, 0, Math.PI*2);
   ctx.fill();
-
-  // Отладочные хитбоксы
-  if (state.debug.showBoxes) {
-    const hb = getPlayerHitbox(p);
-    ctx.save();
-    ctx.strokeStyle = '#ff3366aa';
-    ctx.strokeRect(hb.x, hb.y, hb.w, hb.h);
-    ctx.restore();
-  }
 }
 
 // Препятствия
@@ -211,14 +201,5 @@ export function drawObstacle(ctx, state, o, IMGS) {
       ctx.fillStyle = '#ffffff'; ctx.fill();
       ctx.restore();
     }
-  }
-
-  if (state.debug.showBoxes) {
-    const hb = getObstacleHitbox(o);
-    ctx.save();
-    ctx.strokeStyle = o.kind === 'lowcloud' ? '#00ff99aa' : '#ffcc00aa';
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(hb.x, hb.y, hb.w, hb.h);
-    ctx.restore();
   }
 }

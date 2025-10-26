@@ -65,10 +65,7 @@ setupCanvas();
 window.addEventListener('resize', setupCanvas);
 
 /* Input */
-const input = setupInput(
-    { onToggleHitbox: () => { state.debug.showBoxes = !state.debug.showBoxes; } },
-    { jumpBtn, duckBtn }
-);
+const input = setupInput({ jumpBtn, duckBtn });
 
 /* UI helpers */
 function setNameError(msg='') {

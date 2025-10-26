@@ -169,7 +169,7 @@ app.use(express.static(PROJECT_ROOT, {
     }
 }));
 
-app.get('*', (_req, res) => {
+app.get(/^\/(?!api).*/, (_req, res) => {
     res.sendFile(path.join(PROJECT_ROOT, 'index.html'));
 });
 

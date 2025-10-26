@@ -280,6 +280,7 @@ canvas#game {
   justify-content: space-between;
   pointer-events: none;
   padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  z-index: 100;
 }
 .touch-controls button {
   pointer-events: auto;
@@ -294,7 +295,7 @@ canvas#game {
 }
 
 /* Тач-устройства: показываем кнопки, бренд без текста и подложки */
-@media (hover: none) and (pointer: coarse) {
+@media (hover: none) and (pointer: coarse), (max-width: 600px) {
   .touch-controls.active { display: flex; }
 }
 

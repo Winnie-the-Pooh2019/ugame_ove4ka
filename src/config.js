@@ -106,10 +106,10 @@ export const SHEEP_ANIM = {
 // Пути к ассетам
 export const ASSET_PATHS = {
     sheep: 'svg/sheep.svg',
-    sheepRun1: 'svg/Sheep1.svg',
-    sheepRun2: 'svg/Sheep2.svg',
-    sheepRun3: 'svg/Sheep3.svg',
-    sheepRun4: 'svg/Sheep4.svg',
+    sheepRun1: 'svg/sheep1.svg',
+    sheepRun2: 'svg/sheep2.svg',
+    sheepRun3: 'svg/sheep3.svg',
+    sheepRun4: 'svg/sheep4.svg',
     sheepJump: 'svg/sheep_jump.svg',
     sheepLay:  'svg/sheep_lay.svg',
     cloud: 'svg/cloud.svg',
