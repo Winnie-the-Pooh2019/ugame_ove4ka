@@ -1,0 +1,7 @@
+POST {{host}}/api/register
+Content-Type: application/json
+
+{
+  "name": "ivan",
+  "group": "pim-241"
+}

@@ -1,5 +1,6 @@
 // Клиент лидерборда: localStorage для игрока + запросы к серверу
-const API_BASE = '/api';
+const BASE_URL = 'http://localhost:8888'
+const API_BASE = `${BASE_URL}/api`;
 const KEY_PLAYER = 'sleepSheep.player';
 
 // Имя: буквы + пробелы; Группа: буквы/цифры + дефис (UPPER)
@@ -124,5 +125,6 @@ export async function submitScore(scoreRaw) {
 // Получение таблицы лидеров
 export async function fetchLeaderboard(limit = 10) {
   const res = await jsonFetch(`${API_BASE}/leaderboard?limit=${encodeURIComponent(limit)}`);
+  // const res = await jsonFetch(`${API_BASE}/echo`);
   return { top10: res?.top10 || [], total: Number(res?.total) || 0 };
 }
