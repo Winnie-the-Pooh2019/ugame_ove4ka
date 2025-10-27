@@ -1,7 +1,7 @@
-package com.example.sheep.data.repository
+package com.example.sheep.infrastructure.data.repository
 
-import com.example.sheep.data.entity.UserEntity
-import com.example.sheep.data.mapper.UserEntityMapper
+import com.example.sheep.infrastructure.data.entity.UserEntity
+import com.example.sheep.infrastructure.data.mapper.UserEntityMapper
 import com.example.sheep.domain.model.User
 import com.example.sheep.domain.repository.UserRepository
 import org.springframework.beans.factory.annotation.Autowired
@@ -24,7 +24,7 @@ class InMemoryUserRepository(
     )
 
     override fun findByName(name: String): Optional<User> = Optional.ofNullable(
-        _users.firstOrNull { it.name == name }?.toDomain()
+        _users.firstOrNull { it.username == name }?.toDomain()
     )
 
     private fun User.toEntity() = userEntityMapper.mapToEntity(this)

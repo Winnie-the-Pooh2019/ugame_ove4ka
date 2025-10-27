@@ -13,7 +13,7 @@ class AccountService(
 ) {
     fun registerUser(user: User): User {
         val currentUser = userRepository
-            .findByName(user.name)
+            .findByName(user.username)
             .orElse(null)
 
         if (currentUser != null) {

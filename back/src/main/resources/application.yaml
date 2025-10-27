@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: sheep
+  docker:
+    compose:
+      enabled: true
+      file: docker-compose.yml
+
+server:
+  port: 8888
+  servlet:
+    context-path: /api
+
+app:
+  jwt:
+    secret: w+cw6aS5PKyELMTqZPFjng==
+    age: 120000
+  cookie:
+    name: pid
+    age: 120

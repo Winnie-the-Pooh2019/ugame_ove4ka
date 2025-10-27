@@ -16,7 +16,7 @@ class RegisterUser(
     fun registerUser(user: User): User {
         val newUser = User(
             user.id,
-            validator.sanitizeUsername(user.name),
+            validator.sanitizeUsername(user.username),
             validator.sanitizeGroup(user.group)
         )
 

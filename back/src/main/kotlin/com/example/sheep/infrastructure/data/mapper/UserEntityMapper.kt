@@ -1,6 +1,6 @@
-package com.example.sheep.data.mapper
+package com.example.sheep.infrastructure.data.mapper
 
-import com.example.sheep.data.entity.UserEntity
+import com.example.sheep.infrastructure.data.entity.UserEntity
 import com.example.sheep.domain.model.User
 import org.springframework.stereotype.Component
 import java.util.*
@@ -9,13 +9,15 @@ import java.util.*
 class UserEntityMapper {
     fun mapToEntity(user: User) = UserEntity(
         id = user.id ?: UUID.randomUUID(),
-        name = user.name,
+        username = user.username,
+        password = user.password,
         group = user.group
     )
 
     fun mapToDomain(userEntity: UserEntity) = User(
         id = userEntity.id,
-        name = userEntity.name,
+        username = userEntity.username,
+        password = userEntity.password,
         group = userEntity.group
     )
 }

@@ -4,6 +4,7 @@ import java.util.*
 
 data class User(
     val id: UUID? = null,
-    val name: String,
+    val username: String,
+    val password: String,
     val group: String
 )
