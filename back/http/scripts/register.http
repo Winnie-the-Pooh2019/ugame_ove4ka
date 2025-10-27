@@ -2,6 +2,16 @@ POST {{host}}/api/register
 Content-Type: application/json
 
 {
-  "name": "ivan",
-  "group": "pim-241"
+  "group": "pim-241",
+  "username": "ivan",
+  "password": "asdf"
+}
+
+###
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "ivan",
+  "password": "asdf"
 }

@@ -7,5 +7,5 @@ interface UserRepository {
     fun save(user: User): User
     fun findAll(): List<User>
     fun findById(id: UUID): Optional<User>
-    fun findByName(name: String): Optional<User>
+    fun findByUsername(username: String): Optional<User>
 }

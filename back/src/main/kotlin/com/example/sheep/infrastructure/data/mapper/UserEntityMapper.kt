@@ -1,6 +1,6 @@
 package com.example.sheep.infrastructure.data.mapper
 
-import com.example.sheep.infrastructure.data.entity.UserEntity
+import com.example.sheep.infrastructure.data.model.UserEntity
 import com.example.sheep.domain.model.User
 import org.springframework.stereotype.Component
 import java.util.*

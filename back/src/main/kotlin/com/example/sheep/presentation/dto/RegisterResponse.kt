@@ -1,6 +1,8 @@
 package com.example.sheep.presentation.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
+
 data class RegisterResponse(
-    val player: RegistrationDto,
-    val ok: Boolean = true
+    @JsonProperty("user_id")
+    val userId: String
 )

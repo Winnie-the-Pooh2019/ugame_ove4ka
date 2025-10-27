@@ -13,7 +13,7 @@ server:
 
 app:
   jwt:
-    secret: w+cw6aS5PKyELMTqZPFjng==
+    secret: ecqN4N4aD6ToTXEEJlVgjPZqCo0tp6Q4+b4g/HI/TyYg/YQKl66BvvWLxJLecc+dJ1bJRZCOKwOtyuSuXkqBQw==
     age: 120000
   cookie:
     name: pid

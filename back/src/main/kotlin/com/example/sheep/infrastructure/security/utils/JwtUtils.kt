@@ -1,6 +1,5 @@
 package com.example.sheep.infrastructure.security.utils
 
-import com.sun.org.apache.xml.internal.security.algorithms.SignatureAlgorithm
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders

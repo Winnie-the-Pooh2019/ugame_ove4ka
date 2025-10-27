@@ -1,20 +1,19 @@
 package com.example.sheep.presentation.mapper
 
 import com.example.sheep.domain.model.User
-import com.example.sheep.presentation.dto.RegistrationDto
+import com.example.sheep.presentation.dto.RegisterRequest
+import com.example.sheep.presentation.dto.RegisterResponse
 import org.springframework.stereotype.Component
 
 @Component
 class UserDtoMapper {
-    fun mapToDto(user: User) = RegistrationDto(
-        username = user.username,
-        password = user.password,
-        group = user.group
+    fun mapToRegisterResponse(user: User) = RegisterResponse(
+        userId = user.id.toString()
     )
 
-    fun mapToDomain(registrationDto: RegistrationDto) = User(
-        username = registrationDto.username,
-        password = registrationDto.password,
-        group = registrationDto.group
+    fun mapToDomain(registerRequest: RegisterRequest) = User(
+        username = registerRequest.username,
+        password = registerRequest.password,
+        group = registerRequest.group
     )
 }
